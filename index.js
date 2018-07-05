@@ -125,9 +125,16 @@ class Co {
     const args = process.argv.splice(2);
     this.args = args;
 
+    if (args.length === 0) {
+      this.commands.forEach((c) => {
+        if (c.default) c.action();
+      });
+
+      return this;
+    }
+
     // Parse commands
     this.commands.forEach((c) => {
-      if (c.default) c.action();
       if (args.includes(c.name)) {
         c.action();
       } else {
