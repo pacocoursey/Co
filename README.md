@@ -11,7 +11,7 @@ $ npm install pacocoursey/co
 ## Usage
 
 ```js
-const Co = require('pacocoursey/co');
+const Co = require('@pacocoursey/co');
 
 Co.command('help')
   .description('output usage information')

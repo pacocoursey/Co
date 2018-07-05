@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 const chalk = require('chalk');
 const Co = require('@pacocoursey/co');
 
