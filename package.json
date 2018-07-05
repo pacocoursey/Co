@@ -1,0 +1,9 @@
+{
+  "name": "@pacocoursey/co",
+  "version": "0.0.1",
+  "description": "cli controller for node.",
+  "author": "Paco Coursey <paco@pacocoursey.com> (pacocoursey.com)",
+  "repository": "pacocoursey/co",
+  "license": "MIT",
+  "main": "index.js"
+}
