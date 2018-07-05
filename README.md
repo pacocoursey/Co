@@ -5,13 +5,13 @@ Tiny, simple, and unassuming CLI helper for node
 ## Install
 
 ```
-$ npm install @pacocoursey/co
+$ npm install pacocoursey/co
 ```
 
 ## Usage
 
-```
-const Co = require('@pacocoursey/co');
+```js
+const Co = require('pacocoursey/co');
 
 Co.command('help')
   .description('output usage information')
