@@ -4,6 +4,11 @@ class Command {
     this.aliases = [];
   }
 
+  setDefault() {
+    this.default = true;
+    return this;
+  }
+
   description(d) {
     if (!d || d === '') return this;
 
@@ -122,6 +127,7 @@ class Co {
 
     // Parse commands
     this.commands.forEach((c) => {
+      if (c.default) c.action();
       if (args.includes(c.name)) {
         c.action();
       } else {
