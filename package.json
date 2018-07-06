@@ -1,9 +1,18 @@
 {
   "name": "@pacocoursey/co",
-  "version": "0.0.1",
+  "version": "0.1.2",
   "description": "cli controller for node.",
   "author": "Paco Coursey <paco@pacocoursey.com> (pacocoursey.com)",
   "repository": "pacocoursey/co",
   "license": "MIT",
-  "main": "index.js"
+  "main": "index.js",
+  "dependencies": {},
+  "keywords": [
+    "cli",
+    "node",
+    "controller",
+    "parser",
+    "options",
+    "commands"
+  ],
 }

@@ -1,7 +1,19 @@
+const find = (object, name) => {
+  let found = null;
+  Object.entries(object).forEach(([key, value]) => {
+    const arr = key.split(' ');
+    if (arr.includes(name)) found = value;
+  });
+  return found;
+};
+
+const log = msg => console.log(`\n  ${msg}\n`);
+const error = (msg) => { console.log(`\n  Error: ${msg}\n`); process.exit(1); };
+
 class Command {
   constructor(name) {
     this.name = name;
-    this.aliases = [];
+    this.func = false;
   }
 
   setDefault() {
@@ -19,21 +31,12 @@ class Command {
   action(fn) {
     if (!fn) return this;
 
-    this.action = fn;
+    this.func = fn;
     return this;
   }
 
-  alias(a) {
-    if (!a || a.length === 0 || a === '') return this;
-
-    if (Array.isArray(a)) {
-      a.forEach((el) => {
-        this.aliases.push(el);
-      });
-    } else {
-      this.aliases.push(a);
-    }
-
+  strict(v) {
+    this.strict = v;
     return this;
   }
 }
@@ -41,27 +44,13 @@ class Command {
 class Flag {
   constructor(name) {
     this.name = name;
-    this.aliases = [];
+    this.func = false;
   }
 
   action(fn) {
     if (!fn) return this;
 
-    this.action = fn;
-    return this;
-  }
-
-  alias(a) {
-    if (!a || a.length === 0 || a === '') return this;
-
-    if (Array.isArray(a)) {
-      a.forEach((el) => {
-        this.aliases.push(el);
-      });
-    } else {
-      this.aliases.push(a);
-    }
-
+    this.func = fn;
     return this;
   }
 
@@ -76,44 +65,60 @@ class Flag {
 class Co {
   constructor() {
     this.v = '0.0.1';
-    this.flags = [];
-    this.commands = [];
+    this.flags = {};
+    this.commands = {};
   }
 
-  flag(name) {
+  flag(name, alias) {
     if (!name || name === '') {
-      throw new Error('Cannot create empty flag');
+      error('Cannot create empty flag');
     }
 
-    this.flags.forEach((f) => {
-      if (f.name === name) {
-        throw new Error(`A flag named ${name} already exists.`);
-      }
-    });
+    if (find(this.flags, name)) {
+      error(`A flag named ${name} already exists`);
+    }
 
     const x = new Flag(name);
-    this.flags.push(x);
-    return x;
-  }
 
-  command(name) {
-    if (!name || name === '') {
-      throw new Error('Cannot create empty command');
+    if (!alias) {
+      this.flags[name] = x;
+    } else if (Array.isArray(alias) && alias.length !== 0) {
+      let str = name;
+      alias.forEach((a) => { str += ` ${a}`; });
+      this.flags[str] = x;
+    } else {
+      this.flags[`${name} ${alias}`] = x;
     }
 
-    this.commands.forEach((c) => {
-      if (c.name === name) {
-        throw new Error(`A command named ${name} already exists`);
-      }
-    });
-
-    const x = new Command(name);
-    this.commands.push(x);
     return x;
   }
 
-  getVersion() {
-    return this.v;
+  command(name, alias) {
+    if (!name || name === '') {
+      error('Cannot create empty command');
+    }
+
+    if (find(this.commands, name)) {
+      error(`A command named ${name} already exists`);
+    }
+
+    const x = new Command(name);
+
+    if (!alias) {
+      this.commands[name] = x;
+    } else if (Array.isArray(alias) && alias.length !== 0) {
+      let str = name;
+      alias.forEach((a) => { str += ` ${a}`; });
+      this.commands[str] = x;
+    } else {
+      this.commands[`${name} ${alias}`] = x;
+    }
+
+    return x;
+  }
+
+  displayVersion() {
+    log(this.v);
   }
 
   version(v) {
@@ -124,40 +129,44 @@ class Co {
   parse() {
     const args = process.argv.splice(2);
     this.args = args;
+    let i;
+    let j;
 
+    // No flags or command passed, do default
     if (args.length === 0) {
-      this.commands.forEach((c) => {
-        if (c.default) c.action();
+      Object.values(this.commands).forEach((c) => {
+        if (c.default) c.func();
       });
-
-      return this;
     }
 
-    // Parse commands
-    this.commands.forEach((c) => {
-      if (args.includes(c.name)) {
-        c.action();
-      } else {
-        c.aliases.forEach((a) => {
-          if (args.includes(a)) c.action();
-        });
-      }
-    });
+    // Loop through passed arguments
+    for (i = 0; i < args.length; i += 1) {
+      const arg = args[i];
 
-    // Parse flags
-    this.flags.forEach((f) => {
-      if (args.includes(f.name)) {
-        if (f.action) f.action();
-        this[f.name.replace('-', '')] = true;
-      } else {
-        f.aliases.forEach((a) => {
-          if (args.includes(a)) {
-            if (f.action) f.action();
-            this[f.name.replace('-', '')] = true;
-          }
-        });
+      // Check if is an existing flag or command
+      let opt = find(this.flags, arg);
+      if (!opt) {
+        opt = find(this.commands, arg);
+        if (!opt) {
+          error(`${arg} is not a valid flag or command.`);
+        }
       }
-    });
+
+      // Call the associated action with correct number of arguments
+      // TODO: allow for varying arguments
+      if (opt.func) {
+        const numArgs = opt.func.length;
+        const r = [];
+        for (j = 1; j <= numArgs; j += 1) {
+          if (!args[i + j] || args[i + j] === '') {
+            error(`${opt.name}: invalid number of arguments.`);
+          }
+          r.push(args[i + j]);
+        }
+        opt.func(...r);
+        i = j;
+      }
+    }
 
     return this;
   }
