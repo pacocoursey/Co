@@ -24,9 +24,3 @@ Co.parse();
 ## Related
 
 - [Commander](https://github.com/tj/commander.js) - OG CLI parsing for node
-
-#
-
-<p align="center">
-  <a href="http://paco.sh"><img src="https://raw.githubusercontent.com/pacocoursey/pacocoursey.github.io/master/footer.png" height="300"></a>
-</p>
